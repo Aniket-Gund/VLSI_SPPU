@@ -1,0 +1,101 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use ieee.std_logic_unsigned.all;
+entity mod_n is
+    generic(N:integer:=5);
+    Port ( q : out STD_LOGIC_VECTOR (3 downto 0);
+           clk : in STD_LOGIC;
+           reset : in STD_LOGIC);
+end mod_n;
+architecture Behavioral of mod_n is
+signal count:std_logic_vector(3 downto 0);
+signal clkout:STD_LOGIC;
+signal counter: integer range 0 to 49999999 :=0;
+begin
+--    process (clk,reset)
+--    begin
+--        if (reset = '1') then
+--            clkout<= '0';
+--            counter<= 0;
+--        elsif rising_edge(clk) then
+--            if (counter = 49999999) then
+--                clkout<= not clkout;
+--                counter<=0;
+--            else 
+--                counter<=counter+1;
+--            end if;
+--        end if;
+--    end process;
+    process(clk,reset)
+    begin
+        if(reset='1') then
+            count<=(others=>'0');
+        elsif (count>=N) then 
+            count<=(others=>'0');
+        elsif rising_edge(clk) then
+            count <= count+1;
+        end if;
+        Q<=count;
+    end process;  
+end Behavioral;
+
+
+
+
+
+
+
+
+
+
+Testbench:
+
+
+
+
+
+
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+-- Uncomment the following library declaration if using -- arithmetic
+functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+-- Uncomment the following library declaration if instantiating -- any
+Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+entity mod_n_test is
+end mod_n_test;
+architecture Behavioral of mod_n_test is
+component mod_n
+Port ( clk: in std_logic; -- clock input
+reset: in std_logic; -- reset input
+Q: out std_logic_vector(3 downto 0) ); -- output 4-bit counter
+end component ;
+
+signal reset,clk :std_logic;
+signal Q:std_logic_vector(3 downto 0);
+constant clk_period : time := 10ns;
+Begin
+UUT: mod_n port map(clk=>clk,reset=>reset,Q=>Q);
+process
+Begin
+clk<='0';
+wait for clk_period/2;
+clk<='1';
+wait for clk_period/2;
+end process;
+process
+begin 
+reset<= '1';
+wait for 10ns;
+reset <= '0';
+wait for 60ns;
+end process;
+end Behavioral;
+
+

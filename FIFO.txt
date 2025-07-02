@@ -1,0 +1,187 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity fifo8_8 is
+    Port ( rden : in STD_LOGIC;
+           wren : in STD_LOGIC;
+           clk : in STD_LOGIC;
+           rst : in STD_LOGIC;
+           dataout : out STD_LOGIC_VECTOR (7 downto 0);
+           empty : out STD_LOGIC;
+           full : out STD_LOGIC);
+end fifo8_8;
+
+architecture Behavioral of fifo8_8 is
+    signal rdptr, wrptr: integer range 0 to 7 := 0;
+    type fifo is array (0 to 7) of STD_LOGIC_VECTOR(7 downto 0);
+    signal memory : fifo;
+    type datain is array (0 to 7) of STD_LOGIC_VECTOR(7 downto 0);
+    signal data: datain := ("10101010", "11111111", "00000000", "01010101", "11001100", "00110011", "11100011", "00011100");
+    signal clkout:std_logic:='0';
+    signal counter:integer range 0 to 49999999:=0;
+begin
+process (clk,rst)
+    begin
+        if (rst = '1') then
+            clkout<= '0';
+            counter<= 0;
+        elsif rising_edge(clk) then
+            if (counter = 49999999) then
+                clkout<= not clkout;
+                counter<=0;
+            else 
+                counter<=counter+1;
+            end if;
+        end if;
+    end process;
+
+process(clkout,rst)
+begin
+    if rising_edge(clkout) then 
+        if(rst = '1') then
+            for i in 0 to 7 loop
+                memory(i)<="00000000";
+            end loop;
+            empty <= '1';
+            full <= '0';       
+            rdptr<=0;
+            wrptr<=0;
+        elsif(wren ='1' and rden ='0') then
+            memory(wrptr) <= data(wrptr);
+            empty<='0';
+            if(wrptr < 7) then
+            wrptr <= wrptr+1;
+            elsif(wrptr =7) then
+                full<='1';
+                rdptr<=0;
+            end if;
+       elsif(rden = '1' and wren ='0') then
+           dataout <= memory(rdptr);
+           full<='0';
+           if(rdptr = 7) then
+           empty<='1';
+           wrptr<=0;
+           elsif (rdptr < 7) then
+           rdptr<=rdptr+1;
+           end if;
+       else
+           dataout<="ZZZZZZZZ";
+       end if;
+       end if; 
+    end process;
+end Behavioral;
+
+
+
+
+
+
+
+
+
+
+Testbench:
+
+
+
+
+
+
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 07/31/2019 11:10:52 AM
+-- Design Name: 
+-- Module Name: FIFO_TB - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_unsigned.ALL;
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity FIFO_TB is
+--  Port ( );
+end FIFO_TB;
+
+architecture Behavioral of FIFO_TB is
+component FIFO 
+    Port ( clk,rst, wren,rden : in STD_LOGIC;
+           empty : out STD_LOGIC;
+           full : out STD_LOGIC;
+           dataout:out std_logic_vector(7 downto 0));
+          
+end component;
+signal clk,rst,wren,rden:std_logic;
+signal empty:std_logic;
+signal full:std_logic;
+signal dataout:std_logic_vector(7 downto 0);
+constant clk_period: time:= 10 ns;
+begin
+uut: fifo port map (
+     clk=>clk,
+     rst=>rst,
+     wren=>wren,
+     rden=>rden,
+     empty=>empty,
+     full=>full,
+     dataout=>dataout);
+    
+process
+    begin
+    clk<='0';
+    wait for clk_period/2;
+    clk<='1';
+     wait for clk_period/2;
+    end process;
+
+process
+begin
+rst<='1';
+wait for 90 ns;
+rst<='0';
+wait for 10 ns;
+wren<='1';
+wait for 80 ns;
+wren<='0';
+wait for 10 ns;
+rden<='1';
+wait for 90 ns;
+rden<='0';
+wait for 10 ns;
+wait;
+end process;
+end Behavioral;
+
+
+
+
+
+
+
+
+
+
+
+
